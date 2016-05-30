@@ -3,7 +3,7 @@ import time
 
 import web
 
-from weasyl import define, index, macro, search, template, profile, siteupdate, submission
+from weasyl import define, index, macro, search, profile, siteupdate, submission
 from weasyl.controllers.base import controller_base
 
 
@@ -14,7 +14,7 @@ class index_(controller_base):
     def GET(self):
         now = time.time()
         page = define.common_page_start(self.user_id, options=["homepage"], title="Home")
-        page.append(define.render(template.etc_index, index.template_fields(self.user_id)))
+        page.append(define.render("etc/index.html", index.template_fields(self.user_id)))
         return define.common_page_end(self.user_id, page, now=now)
 
 
@@ -101,7 +101,7 @@ class streaming_(controller_base):
             "title": "Streaming",
         }
         rating = define.get_rating(self.user_id)
-        return define.webpage(self.user_id, template.etc_streaming,
+        return define.webpage(self.user_id, "etc/streaming.html",
                               [profile.select_streaming(self.user_id, rating, 300, order_by="start_time desc")], **extras)
 
 
