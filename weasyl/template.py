@@ -14,7 +14,6 @@ user_collections = compile("user/collections.html")
 user_characters = compile("user/characters.html")
 user_shouts = compile("user/shouts.html")
 user_favorites = compile("user/favorites.html")
-user_commissions = compile("user/commissions.html")
 
 detail_submission = compile("detail/submission.html")
 detail_character = compile("detail/character.html")
