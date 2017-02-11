@@ -253,14 +253,14 @@ def select_commissionable(userid, q, commishclass, min_price, max_price, currenc
     """]
     if min_price:
         for c in CURRENCY_CHARMAP:
-            ratio = currency_ratio(c, currency)
-            if ratio:
-                stmt.append("AND NOT (cp.settings ~ '^%s' AND cp.amount_min < %f)\n" % (c, ratio * min_price))
+            local_min = convert_currency(min_price, currency, c)
+            if local_min:
+                stmt.append("AND NOT (cp.settings ~ '^%s' AND cp.amount_min < %f)\n" % (c, local_min))
     if max_price:
         for c in CURRENCY_CHARMAP:
-            ratio = currency_ratio(c, currency)
-            if ratio:
-                stmt.append("AND NOT (cp.settings ~ '^%s' AND cp.amount_min > %f)\n" % (c, ratio * max_price))
+            local_max = convert_currency(max_price, currency, c)
+            if local_max:
+                stmt.append("AND NOT (cp.settings ~ '^%s' AND cp.amount_min > %f)\n" % (c, local_max))
     tags = q.lower().split()
     if userid:
         stmt.append(m.MACRO_IGNOREUSER % (userid, "p"))
@@ -295,7 +295,7 @@ def select_commissionable(userid, q, commishclass, min_price, max_price, currenc
         dinfo['localmin'] = convert_currency(info.pricemin, info.pricesettings, currency)
         dinfo['localmax'] = convert_currency(info.pricemax, info.pricesettings, currency)
         if tags:
-            terms = ["user:" + info.username] + ["|" + tag for tag in tags]
+            terms = ["user:" + d.get_sysname(info.username)] + ["|" + tag for tag in tags]
             dinfo['searchquery'] = "q=" + urllib.quote(" ".join(terms))
         else:
             dinfo['searchquery'] = ""
