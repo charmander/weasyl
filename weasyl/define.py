@@ -22,7 +22,6 @@ from pyramid.threadlocal import get_current_request
 import pytz
 import requests
 import sqlalchemy as sa
-import sqlalchemy.orm
 from web.template import frender
 
 import libweasyl.constants
@@ -37,9 +36,6 @@ from weasyl.cache import region
 from weasyl.compat import FakePyramidRequest
 from weasyl.config import config_obj, config_read_setting, config_read_bool
 from weasyl.error import WeasylError
-
-
-_shush_pyflakes = [sqlalchemy.orm]
 
 
 reload_templates = bool(os.environ.get('WEASYL_RELOAD_TEMPLATES'))
