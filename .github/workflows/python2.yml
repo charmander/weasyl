@@ -17,6 +17,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 8.x
+    - name: Set up PostgreSQL
+      uses: harmon758/postgresql-action@v1
+      with:
+        postgresql version: '9.6'
     - name: Install dependencies
       run: |
         DEBIAN_FRONTEND=noninteractive sudo apt-get install -yq libpq-dev sassc
