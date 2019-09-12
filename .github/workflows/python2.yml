@@ -1,0 +1,30 @@
+name: Python 2
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 2.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 2.7
+    - name: Install dependencies
+      run: |
+        make setup
+        weasyl-env/bin/pip install -r etc/requirements.txt -c etc/requirements.txt -e . -e './libweasyl[development]' codecov==2.0.15 pytest-cov==2.7.1
+    - name: Test libweasyl
+      run: |
+        weasyl-env/bin/pytest --cov=libweasyl/libweasyl libweasyl/libweasyl
+    - name: Test weasyl
+      run: |
+        WEASYL_APP_ROOT=. WEASYL_STORAGE_ROOT=testing weasyl-env/bin/pytest --cov-append --cov=weasyl weasyl/test
+    - name: Submit coverage
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      run: |
+        codecov
