@@ -226,10 +226,8 @@ def get_user_ratings(userid):
 
 
 def check_user_rating_allowed(userid, rating):
-    # TODO(kailys): ensure usages always pass a Rating
-    minimum_age = rating.minimum_age if isinstance(rating, ratings.Rating) else ratings.CODE_MAP[rating].minimum_age
     user_age = get_user_age(userid)
-    if user_age is not None and user_age < minimum_age:
+    if user_age is not None and get_user_age(userid) < rating.minimum_age:
         raise WeasylError("ratingInvalid")
 
 
