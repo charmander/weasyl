@@ -3,7 +3,7 @@ set -eu
 rm -f sandbox/app/http.sock sandbox/app/http.sock.lock
 mkdir -p \
     sandbox/app \
-    sandbox/storage
+    sandbox/storage/log
 exec env -i bwrap \
     --unshare-all \
     --new-session \
@@ -25,7 +25,6 @@ exec env -i bwrap \
     --setenv PYTHONDONTWRITEBYTECODE 1 \
     --setenv WEASYL_APP_ROOT . \
     --setenv WEASYL_STORAGE_ROOT sandbox/storage \
-    --setenv WEASYL_SERVE_STATIC_FILES y \
     --setenv WEASYL_RELOAD_TEMPLATES y \
     --setenv WEASYL_RELOAD_ASSETS y \
     --setenv WEASYL_WEB_ENDPOINT unix:address=sandbox/app/http.sock \

@@ -13,12 +13,12 @@ mkdir -p \
     sandbox/egg-info/libweasyl
 
 exec env -i bwrap \
-    --unshare-user-try --unshare-ipc --unshare-pid --unshare-uts --unshare-cgroup-try \
+    --unshare-all \
+    --share-net \
     --new-session \
     --die-with-parent \
     --hostname weasyl \
     --dev /dev \
-    --proc /proc \
     --tmpfs /tmp \
     --ro-bind /bin /bin \
     --ro-bind /etc/ca-certificates /etc/ca-certificates \

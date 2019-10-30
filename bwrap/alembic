@@ -6,7 +6,6 @@ exec env -i bwrap \
     --die-with-parent \
     --hostname weasyl \
     --dev /dev \
-    --proc /proc \
     --tmpfs /tmp \
     --ro-bind /bin /bin \
     --ro-bind /lib /lib \

@@ -9,7 +9,7 @@ else
     suffix="$(python3 -c '
 import string, secrets
 print("".join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(10)))')"
-    printf 'generated hostname: weasyl-%s' "$suffix" >&2
+    printf 'generated hostname: weasyl-%s\n' "$suffix" >&2
     printf '%s\n' "$suffix" > bwrap/nginx-conf/suffix
 fi
 
@@ -26,7 +26,8 @@ if ! test -e bwrap/nginx-conf/weasyl.crt; then
 fi
 
 exec env -i bwrap \
-    --unshare-user-try --unshare-ipc --unshare-pid --unshare-uts --unshare-cgroup-try \
+    --unshare-all \
+    --share-net \
     --new-session \
     --die-with-parent \
     --hostname weasyl \

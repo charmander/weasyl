@@ -19,4 +19,5 @@ exec env -i bwrap \
     --bind sandbox/postgres /home/weasyl/weasyl/sandbox/postgres \
     --chdir /home/weasyl/weasyl/sandbox/postgres \
     --setenv PATH /usr/bin \
+    --setenv PGHOST /home/weasyl/weasyl/sandbox/postgres \
     ../../bwrap/mkpasswd "$@"
