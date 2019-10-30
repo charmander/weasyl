@@ -1,0 +1,45 @@
+#!/bin/sh
+set -euC
+mkdir -p sandbox/app
+mkdir -p sandbox/nginx/logs
+
+if test -e bwrap/nginx-conf/suffix; then
+    suffix="$(cat bwrap/nginx-conf/suffix)"
+else
+    suffix="$(python3 -c '
+import string, secrets
+print("".join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(10)))')"
+    printf 'generated hostname: weasyl-%s' "$suffix" >&2
+    printf '%s\n' "$suffix" > bwrap/nginx-conf/suffix
+fi
+
+if ! test -e bwrap/nginx-conf/nginx.conf; then
+    sed "s/{{ suffix }}/$suffix/g" bwrap/nginx-conf/nginx.conf.template > bwrap/nginx-conf/nginx.conf
+fi
+
+if ! test -e bwrap/nginx-conf/weasyl.key; then
+    certtool --generate-privkey --ecdsa --outfile bwrap/nginx-conf/weasyl.key
+fi
+
+if ! test -e bwrap/nginx-conf/weasyl.crt; then
+    openssl req -x509 -key bwrap/nginx-conf/weasyl.key -out bwrap/nginx-conf/weasyl.crt -days 30 -subj "/CN=weasyl-$suffix"
+fi
+
+exec env -i bwrap \
+    --unshare-user-try --unshare-ipc --unshare-pid --unshare-uts --unshare-cgroup-try \
+    --new-session \
+    --die-with-parent \
+    --hostname weasyl \
+    --dev /dev \
+    --tmpfs /tmp \
+    --ro-bind /bin /bin \
+    --ro-bind /lib /lib \
+    --ro-bind /lib64 /lib64 \
+    --ro-bind /usr/bin /usr/bin \
+    --ro-bind /usr/local/nginx /usr/local/nginx \
+    --ro-bind /usr/lib /usr/lib \
+    --ro-bind . /home/weasyl/weasyl \
+    --bind sandbox/app /home/weasyl/weasyl/sandbox/app \
+    --bind sandbox/nginx /home/weasyl/weasyl/sandbox/nginx \
+    --chdir /home/weasyl/weasyl \
+    /usr/local/nginx/sbin/nginx -p sandbox/nginx -c /home/weasyl/weasyl/bwrap/nginx-conf/nginx.conf

@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+printf 'weasyl:x:%s:%s:weasyl:/home/weasyl:/bin/sh\n' "$UID" "$(id -g)" > /etc/passwd
+exec "$@"

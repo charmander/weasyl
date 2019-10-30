@@ -20,6 +20,7 @@ __pycache__/
 /config/site.config.txt
 /config/weasyl-staff.py
 /.vagrant
+/sandbox/
 /weasyl-env
 /twistd.pid
 /version.txt

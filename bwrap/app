@@ -1,0 +1,32 @@
+#!/bin/sh
+set -eu
+rm -f sandbox/app/http.sock sandbox/app/http.sock.lock
+mkdir -p \
+    sandbox/app \
+    sandbox/storage
+exec env -i bwrap \
+    --unshare-all \
+    --new-session \
+    --die-with-parent \
+    --hostname weasyl \
+    --dev /dev \
+    --proc /proc \
+    --tmpfs /tmp \
+    --ro-bind /bin /bin \
+    --ro-bind /lib /lib \
+    --ro-bind /lib64 /lib64 \
+    --ro-bind /usr/bin /usr/bin \
+    --ro-bind /usr/lib /usr/lib \
+    --ro-bind . /home/weasyl/weasyl \
+    --bind sandbox/app /home/weasyl/weasyl/sandbox/app \
+    --bind sandbox/storage /home/weasyl/weasyl/sandbox/storage \
+    --chdir /home/weasyl/weasyl \
+    --setenv PYTHONWARNINGS d \
+    --setenv PYTHONDONTWRITEBYTECODE 1 \
+    --setenv WEASYL_APP_ROOT . \
+    --setenv WEASYL_STORAGE_ROOT sandbox/storage \
+    --setenv WEASYL_SERVE_STATIC_FILES y \
+    --setenv WEASYL_RELOAD_TEMPLATES y \
+    --setenv WEASYL_RELOAD_ASSETS y \
+    --setenv WEASYL_WEB_ENDPOINT unix:address=sandbox/app/http.sock \
+    sandbox/env/bin/twistd -ny weasyl/weasyl.tac --pidfile=/tmp/twistd.pid

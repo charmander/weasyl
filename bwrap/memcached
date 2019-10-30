@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+exec env -i bwrap \
+    --unshare-all \
+    --new-session \
+    --die-with-parent \
+    --hostname weasyl \
+    --dev /dev \
+    --tmpfs /tmp \
+    --ro-bind /bin /bin \
+    --ro-bind /lib /lib \
+    --ro-bind /lib64 /lib64 \
+    --ro-bind /usr/bin /usr/bin \
+    --ro-bind /usr/lib /usr/lib \
+    --dir /home/weasyl/weasyl \
+    --bind sandbox /home/weasyl/weasyl/sandbox \
+    --chdir /home/weasyl/weasyl \
+    memcached -l 127.0.0.1 --port=0 --unix-socket=sandbox/memcached.sock -o modern

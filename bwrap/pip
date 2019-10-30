@@ -1,0 +1,41 @@
+#!/bin/sh
+set -eu
+
+if test -e /usr/lib/imagemagick6; then
+    setenv_pkgconfig='--setenv PKG_CONFIG_PATH /usr/lib/imagemagick6/pkgconfig'
+else
+    setenv_pkgconfig=''
+fi
+
+mkdir -p \
+    sandbox/pip-cache \
+    sandbox/egg-info/weasyl \
+    sandbox/egg-info/libweasyl
+
+exec env -i bwrap \
+    --unshare-user-try --unshare-ipc --unshare-pid --unshare-uts --unshare-cgroup-try \
+    --new-session \
+    --die-with-parent \
+    --hostname weasyl \
+    --dev /dev \
+    --proc /proc \
+    --tmpfs /tmp \
+    --ro-bind /bin /bin \
+    --ro-bind /etc/ca-certificates /etc/ca-certificates \
+    --ro-bind /etc/ssl /etc/ssl \
+    --ro-bind /lib /lib \
+    --ro-bind /lib64 /lib64 \
+    --ro-bind /usr /usr \
+    --ro-bind /dev/null /bin/lsb_release \
+    --ro-bind /dev/null /usr/bin/lsb_release \
+    --ro-bind . /home/weasyl/weasyl \
+    --bind sandbox/env /home/weasyl/weasyl/sandbox/env \
+    --bind sandbox/pip-cache /home/weasyl/.cache/pip \
+    --bind sandbox/egg-info/weasyl /home/weasyl/weasyl/weasyl.egg-info \
+    --bind sandbox/egg-info/libweasyl /home/weasyl/weasyl/libweasyl/libweasyl.egg-info \
+    --chdir /home/weasyl/weasyl \
+    --setenv HOME /home/weasyl \
+    --setenv PATH /usr/bin \
+    --setenv PYTHONDONTWRITEBYTECODE 1 \
+    $setenv_pkgconfig \
+    sandbox/env/bin/pip "$@"

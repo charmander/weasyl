@@ -1,0 +1,22 @@
+#!/bin/sh
+mkdir -p sandbox/postgres
+exec env -i bwrap \
+    --unshare-all \
+    --new-session \
+    --die-with-parent \
+    --hostname weasyl \
+    --dev /dev \
+    --tmpfs /tmp \
+    --dir /etc \
+    --ro-bind /bin /bin \
+    --ro-bind /lib /lib \
+    --ro-bind /lib64 /lib64 \
+    --ro-bind /usr/bin /usr/bin \
+    --ro-bind /usr/lib /usr/lib \
+    --ro-bind /usr/share/postgresql /usr/share/postgresql \
+    --ro-bind /usr/share/zoneinfo /usr/share/zoneinfo \
+    --ro-bind . /home/weasyl/weasyl \
+    --bind sandbox/postgres /home/weasyl/weasyl/sandbox/postgres \
+    --chdir /home/weasyl/weasyl/sandbox/postgres \
+    --setenv PATH /usr/bin \
+    ../../bwrap/mkpasswd "$@"

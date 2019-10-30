@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+exec env -i bwrap \
+    --unshare-all \
+    --new-session \
+    --die-with-parent \
+    --hostname weasyl \
+    --dev /dev \
+    --proc /proc \
+    --tmpfs /tmp \
+    --ro-bind /bin /bin \
+    --ro-bind /lib /lib \
+    --ro-bind /lib64 /lib64 \
+    --ro-bind /usr/bin /usr/bin \
+    --ro-bind /usr/lib /usr/lib \
+    --ro-bind . /home/weasyl/weasyl \
+    --chdir /home/weasyl/weasyl \
+    --setenv PYTHONDONTWRITEBYTECODE 1 \
+    --setenv WEASYL_STORAGE_ROOT sandbox/storage \
+    sandbox/env/bin/alembic "$@"

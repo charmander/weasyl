@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+mkdir -p sandbox/env
+exec env -i bwrap \
+    --unshare-all \
+    --new-session \
+    --die-with-parent \
+    --hostname weasyl \
+    --dev /dev \
+    --tmpfs /tmp \
+    --ro-bind /bin /bin \
+    --ro-bind /lib /lib \
+    --ro-bind /lib64 /lib64 \
+    --ro-bind /usr/bin /usr/bin \
+    --ro-bind /usr/lib /usr/lib \
+    --ro-bind . /home/weasyl/weasyl \
+    --ro-bind /dev/null /bin/lsb_release \
+    --ro-bind /dev/null /usr/bin/lsb_release \
+    --bind sandbox/env /home/weasyl/weasyl/sandbox/env \
+    --chdir /home/weasyl/weasyl \
+    --setenv PYTHONDONTWRITEBYTECODE 1 \
+    virtualenv2 --no-download sandbox/env
