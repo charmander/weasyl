@@ -13,6 +13,7 @@ exec env -i bwrap \
     --ro-bind /usr/bin /usr/bin \
     --ro-bind /usr/lib /usr/lib \
     --ro-bind . /home/weasyl/weasyl \
+    --bind libweasyl/libweasyl/alembic/versions /home/weasyl/weasyl/libweasyl/libweasyl/alembic/versions \
     --chdir /home/weasyl/weasyl \
     --setenv PYTHONDONTWRITEBYTECODE 1 \
     --setenv WEASYL_STORAGE_ROOT sandbox/storage \
