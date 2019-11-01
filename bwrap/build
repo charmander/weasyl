@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+exec env -i bwrap \
+    --unshare-all \
+    --new-session \
+    --die-with-parent \
+    --hostname weasyl \
+    --dev /dev \
+    --proc /proc \
+    --tmpfs /tmp \
+    --ro-bind /bin /bin \
+    --ro-bind /lib /lib \
+    --ro-bind /lib64 /lib64 \
+    --ro-bind /usr/bin /usr/bin \
+    --ro-bind /usr/lib /usr/lib \
+    --ro-bind . /home/weasyl/weasyl \
+    --bind build /home/weasyl/weasyl/build \
+    --chdir /home/weasyl/weasyl \
+    node build.js
