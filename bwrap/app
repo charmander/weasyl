@@ -4,6 +4,11 @@ rm -f sandbox/app/http.sock sandbox/app/http.sock.lock
 mkdir -p \
     sandbox/app \
     sandbox/storage/log
+
+if test $# -eq 0; then
+    set -- sandbox/env/bin/twistd -ny weasyl/weasyl.tac --pidfile=/tmp/twistd.pid
+fi
+
 exec env -i bwrap \
     --unshare-all \
     --new-session \
@@ -28,4 +33,4 @@ exec env -i bwrap \
     --setenv WEASYL_RELOAD_TEMPLATES y \
     --setenv WEASYL_RELOAD_ASSETS y \
     --setenv WEASYL_WEB_ENDPOINT unix:address=sandbox/app/http.sock \
-    sandbox/env/bin/twistd -ny weasyl/weasyl.tac --pidfile=/tmp/twistd.pid
+    "$@"
