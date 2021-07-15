@@ -651,23 +651,29 @@ def _page_header_info(userid):
         "SELECT COUNT(*) FROM message WHERE otherid = %(user)s AND settings ~ 'u'", user=userid)
     result = [messages, 0, 0, 0, 0]
 
-    counts = engine.execute(
-        """
-        SELECT type / 1000 AS group, COUNT(*) AS count
-        FROM welcome
-            LEFT JOIN submission
-                ON welcome.targetid = submission.submitid
-                AND welcome.type BETWEEN 2000 AND 2999
-        WHERE
-            welcome.userid = %(user)s
-            AND (
-                submission.rating IS NULL
-                OR submission.rating <= %(rating)s
-            )
-        GROUP BY "group"
-        """, user=userid, rating=get_rating(userid))
+    # PostgreSQL 9.6 can’t optimize away the rating check itself, even when rating is an enum :(
+    # It also can’t optimize all the way to an index-only scan even when it eliminates the `LEFT JOIN`, so omit that manually too.
+    counts_params = {
+        'user': userid,
+    }
+    counts_query_join = ""
+    counts_query_filter = ""
 
-    for group, count in counts:
+    viewer_rating = get_rating(userid)
+    if viewer_rating != ratings.EXPLICIT.code:
+        counts_params['rating'] = viewer_rating
+        counts_query_join = " LEFT JOIN submission ON welcome.targetid = submission.submitid AND welcome.type BETWEEN 2000 AND 2999"
+        counts_query_filter = " AND (submission.rating IS NULL OR submission.rating <= %(rating)s)"
+
+    counts_query = (
+        "SELECT type / 1000 AS group, count(*) AS count FROM welcome"
+        + counts_query_join
+        + " WHERE welcome.userid = %(user)s"
+        + counts_query_filter
+        + ' GROUP BY "group"'
+    )
+
+    for group, count in engine.execute(counts_query, counts_params):
         result[5 - group] = count
 
     return result
