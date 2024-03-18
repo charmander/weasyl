@@ -12,7 +12,7 @@ from libweasyl import ratings
 from libweasyl import security
 from libweasyl import staff
 from libweasyl.cache import region
-from libweasyl.legacy import UNIXTIME_NOW_SQL
+from libweasyl.legacy import UNIXTIME_NOW_SQL, wzltime_from_arrow, wzltime_to_arrow
 from libweasyl.models import tables as t
 
 from weasyl import define as d
@@ -218,7 +218,7 @@ def select_myself(userid):
 def get_user_age(userid):
     assert userid
     birthday = d.engine.scalar("SELECT birthday FROM userinfo WHERE userid = %(user)s", user=userid)
-    return None if birthday is None else d.convert_age(birthday)
+    return None if birthday is None else d.age_in_years(wzltime_to_arrow(birthday))
 
 
 def get_user_ratings(userid):
@@ -250,7 +250,7 @@ def select_userinfo(userid, config):
     show_age = "b" in config or d.get_userid() in staff.MODS
     return {
         "birthday": query.birthday,
-        "age": d.convert_age(query.birthday) if show_age and query.birthday is not None else None,
+        "age": d.age_in_years(wzltime_to_arrow(query.birthday)) if show_age and query.birthday is not None else None,
         "show_age": "b" in config,
         "gender": query.gender,
         "country": query.country,
@@ -886,12 +886,13 @@ def do_manage(my_userid, userid, username=None, full_name=None, catchphrase=None
             unixtime = None
             age = None
         else:
-            # HTML5 date format is yyyy-mm-dd
-            split = birthday.split("-")
-            if len(split) != 3 or d.convert_unixdate(day=split[2], month=split[1], year=split[0]) is None:
-                raise WeasylError("birthdayInvalid")
-            unixtime = d.convert_unixdate(day=split[2], month=split[1], year=split[0])
-            age = d.convert_age(unixtime)
+            try:
+                birthdate = datetime.date.fromisoformat(birthday)
+            except ValueError as e:
+                raise WeasylError("birthdayInvalid") from e
+
+            unixtime = wzltime_from_arrow(arrow.get(birthdate))
+            age = d.age_in_years(birthdate)
 
         result = d.engine.execute("UPDATE userinfo SET birthday = %(birthday)s WHERE userid = %(user)s", birthday=unixtime, user=userid)
         assert result.rowcount == 1
