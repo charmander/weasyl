@@ -7,7 +7,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.mutable import Mutable, MutableDict
 from sqlalchemy import types
 
-from ..legacy import UNIXTIME_OFFSET
+from ..legacy import wzltime_from_arrow, wzltime_to_arrow
 from .. import ratings
 
 
@@ -206,12 +206,12 @@ class WeasylTimestampColumn(types.TypeDecorator):
     def process_result_value(self, value, dialect):
         if value is None:
             return None
-        return arrow.get(value - UNIXTIME_OFFSET)
+        return wzltime_to_arrow(value)
 
     def process_bind_param(self, value, dialect):
         if value is None:
             return None
-        return value.int_timestamp + UNIXTIME_OFFSET
+        return wzltime_from_arrow(value)
 
 
 class ArrowColumn(types.TypeDecorator):

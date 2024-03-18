@@ -3,7 +3,7 @@ import arrow
 from libweasyl import ratings
 from libweasyl import staff
 from libweasyl import text
-from libweasyl.legacy import UNIXTIME_OFFSET
+from libweasyl.legacy import wzltime_to_arrow
 
 from weasyl import api
 from weasyl import blocktag
@@ -224,7 +224,7 @@ def select_list(userid, rating, otherid):
     return [{
         "journalid": i.journalid,
         "title": i.title,
-        "created_at": arrow.get(i.unixtime - UNIXTIME_OFFSET),
+        "created_at": wzltime_to_arrow(i.unixtime),
         "content": i.content,
     } for i in d.engine.execute("".join(statement)).fetchall()]
 

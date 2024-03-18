@@ -1,7 +1,10 @@
 import pytest
 import json
 
+from arrow import Arrow
+
 from libweasyl import staff
+from libweasyl.legacy import wzltime_from_arrow
 from weasyl import define as d
 from weasyl import login
 from weasyl import macro
@@ -94,7 +97,7 @@ def test_login_fails_if_user_is_suspended():
 @pytest.mark.usefixtures('db')
 def test_login_succeeds_if_suspension_duration_has_expired():
     user_id = db_utils.create_user(password=raw_password, username=user_name)
-    release_date = d.convert_unixdate(31, 12, 2015)
+    release_date = wzltime_from_arrow(Arrow(2015, 12, 31))
     db_utils.create_suspenduser(userid=user_id, reason="Testing", release=release_date)
     result = login.authenticate_bcrypt(username=user_name, password=raw_password, request=None)
     assert result == (user_id, None)

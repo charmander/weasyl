@@ -22,7 +22,7 @@ from web.template import Template
 
 import libweasyl.constants
 from libweasyl.cache import region
-from libweasyl.legacy import UNIXTIME_OFFSET as _UNIXTIME_OFFSET, get_sysname
+from libweasyl.legacy import get_sysname, wzltime_from_arrow, wzltime_to_arrow
 from libweasyl.models.tables import metadata as meta
 from libweasyl import html, text, ratings, staff
 
@@ -383,7 +383,7 @@ def get_time():
     """
     Returns the current unixtime.
     """
-    return int(time.time()) + _UNIXTIME_OFFSET
+    return wzltime_from_arrow(arrow.utcnow())
 
 
 def get_timestamp():
@@ -495,8 +495,9 @@ def get_arrow(unixtime):
     Get an `Arrow` from a Weasyl timestamp, time-zone-aware `datetime`, or `Arrow`.
     """
     if isinstance(unixtime, (int, float)):
-        unixtime -= _UNIXTIME_OFFSET
-    elif not isinstance(unixtime, (arrow.Arrow, datetime.datetime)) or unixtime.tzinfo is None:
+        return wzltime_to_arrow(unixtime)
+
+    if not isinstance(unixtime, (arrow.Arrow, datetime.datetime)) or unixtime.tzinfo is None:
         raise ValueError("unixtime must be supported numeric or datetime")  # pragma: no cover
 
     return arrow.get(unixtime)
@@ -523,7 +524,7 @@ def iso8601_date(target):
     :param target: The target Weasyl timestamp to convert.
     :return: An ISO 8601 string representing the date of `target`.
     """
-    return arrow.get(target - _UNIXTIME_OFFSET).format("YYYY-MM-DD")
+    return wzltime_to_arrow(target).format("YYYY-MM-DD")
 
 
 def convert_unixdate(day, month, year):
@@ -979,7 +980,7 @@ def iso8601(unixtime):
 
 
 def parse_iso8601(s):
-    return arrow.Arrow.strptime(s, '%Y-%m-%dT%H:%M:%SZ').int_timestamp + _UNIXTIME_OFFSET
+    return wzltime_from_arrow(arrow.Arrow.strptime(s, '%Y-%m-%dT%H:%M:%SZ'))
 
 
 def paginate(results, backid, nextid, limit, key):

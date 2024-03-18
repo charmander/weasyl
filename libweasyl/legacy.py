@@ -10,6 +10,7 @@ to use them.
 import string
 import unicodedata
 
+import arrow
 import sqlalchemy as sa
 from sqlalchemy import func
 
@@ -38,3 +39,17 @@ def get_sysname(target):
     """
     normalized = unicodedata.normalize("NFD", target.lower())
     return "".join(i for i in normalized if i in _SYSNAME_CHARACTERS)
+
+
+def wzltime_from_arrow(t: arrow.Arrow) -> int:
+    """
+    Convert an Arrow timestamp to a Weasyl Time Format integer (a number of seconds since 1970-01-01 00:00:00… EST).
+    """
+    return t.int_timestamp + UNIXTIME_OFFSET
+
+
+def wzltime_to_arrow(wtf) -> arrow.Arrow:
+    """
+    Convert a Weasyl Time Format integer or float to a UTC Arrow timestamp.
+    """
+    return arrow.get(wtf - UNIXTIME_OFFSET)
