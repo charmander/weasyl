@@ -1,0 +1,19 @@
+last 1 versions
+
+# ChromeOS LTS (https://support.google.com/chrome/a/answer/11333726)
+Chrome 132
+
+Firefox ESR
+
+# iOS LTS (https://support.apple.com/en-us/100100)
+ios_saf 16.7
+ios_saf 17.7
+
+not dead
+
+# manually exclude unsupported (necessarily below a usage threshold) browsers since we don’t want to include certain high-usage targets even if they’re popular or exclude latest versions of high-usage targets even if they were unpopular in the stats
+not and_uc>0
+not and_qq>0
+not kaios>0
+not op_mini all
+not op_mob>0

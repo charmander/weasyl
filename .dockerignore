@@ -8,6 +8,7 @@
 !poetry.lock
 !pyproject.toml
 
+!.browserslistrc
 !build.ts
 !deno.json
 !deno.lock

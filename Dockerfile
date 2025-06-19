@@ -9,7 +9,7 @@ COPY --chown=deno:deno --link deno.json deno.lock ./
 RUN --mount=type=cache,id=deno,target=/deno-dir,uid=1000 deno install --frozen --vendor=false
 RUN --network=none --mount=type=cache,id=deno,target=/deno-dir,uid=1000 deno install --frozen
 
-COPY --link build.ts build.ts
+COPY --link .browserslistrc build.ts ./
 
 
 FROM asset-builder AS assets
