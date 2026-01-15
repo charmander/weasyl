@@ -6,6 +6,10 @@ from weasyl import media
 from weasyl import welcome
 from weasyl.error import WeasylError
 
+# Note: This module uses multiple database access patterns (d.engine.scalar(), d.engine.execute(),
+# d.connect(), and transaction functions) which may appear inconsistent. This reflects the ongoing
+# evolution of the database access layer. Future refactoring may standardize these patterns.
+
 
 def check(userid: int, otherid: int) -> bool:
     """
@@ -97,6 +101,9 @@ def select_friends(
         "username": r.username,
     } for r in db.execute(query)]
 
+    # For backward pagination (backid), the query fetches results in descending order
+    # (e.g., users before the anchor) but we reverse the list to maintain ascending order
+    # in the final result. This ensures consistent sort order regardless of pagination direction.
     ret = query[::-1] if backid else query
     media.populate_with_user_media(ret)
     return ret
