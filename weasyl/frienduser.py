@@ -40,6 +40,12 @@ def check(userid: int, otherid: int) -> bool:
 def has_friends(otherid: int) -> bool:
     """
     Check whether a user has any confirmed friends.
+
+    Parameters:
+        otherid: The user ID to check for friends.
+
+    Returns:
+        True if the user has at least one confirmed friend, False otherwise.
     """
     return d.engine.scalar(
         "SELECT EXISTS (SELECT FROM frienduser WHERE %(user)s IN (userid, otherid) AND settings !~ 'p')",
