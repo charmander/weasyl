@@ -400,7 +400,7 @@ def test_select_friends_with_pagination(db) -> None:
     # Create multiple friends with different usernames (sorted alphabetically)
     friends = []
     for i in range(5):
-        friend = db_utils.create_user(username=f"friend_0{i}")  # friend_00, friend_01, etc.
+        friend = db_utils.create_user(username=f"friend_{i:02d}")  # friend_00, friend_01, etc.
         frienduser.request(target, friend)
         frienduser.request(friend, target)  # Accept the request
         friends.append(friend)
