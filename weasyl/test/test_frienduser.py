@@ -366,3 +366,93 @@ def test_sequence(
 def test_sequences_with_blocking() -> None:
     # TODO: ignoreuser
     raise NotImplementedError()
+
+
+def test_check_with_invalid_inputs(db) -> None:
+    """Test frienduser.check() with invalid userid/otherid values."""
+    user1 = db_utils.create_user()
+    user2 = db_utils.create_user()
+    
+    # Test with 0 values
+    assert frienduser.check(0, user1) is False
+    assert frienduser.check(user1, 0) is False
+    assert frienduser.check(0, 0) is False
+    
+    # Test with None values (should be handled by type system, but good to verify)
+    assert frienduser.check(None, user1) is False
+    assert frienduser.check(user1, None) is False
+    assert frienduser.check(None, None) is False
+
+
+def test_check_self_friendship(db) -> None:
+    """Test that a user is considered their own friend."""
+    user1 = db_utils.create_user()
+    
+    # A user should be considered their own friend (documented behavior)
+    assert frienduser.check(user1, user1) is True
+
+
+def test_select_friends_with_pagination(db) -> None:
+    """Test select_friends pagination with limit, backid, and nextid parameters."""
+    viewer = db_utils.create_user()
+    target = db_utils.create_user()
+    
+    # Create multiple friends with different usernames (sorted alphabetically)
+    friends = []
+    for i in range(5):
+        friend = db_utils.create_user(username=f"friend_{chr(97+i)}")  # friend_a, friend_b, etc.
+        frienduser.request(target, friend)
+        frienduser.request(friend, target)  # Accept the request
+        friends.append(friend)
+    
+    # Test limit parameter
+    limited = frienduser.select_friends(0, target, limit=3)
+    assert len(limited) == 3
+    
+    # Test that results are sorted by username
+    all_friends = frienduser.select_friends(0, target)
+    assert len(all_friends) == 5
+    usernames = [f["username"] for f in all_friends]
+    assert usernames == sorted(usernames)
+    
+    # Test nextid pagination (forward)
+    first_page = frienduser.select_friends(0, target, limit=2)
+    assert len(first_page) == 2
+    second_page = frienduser.select_friends(0, target, limit=2, nextid=first_page[-1]["userid"])
+    assert len(second_page) == 2
+    # Ensure no overlap
+    first_ids = {f["userid"] for f in first_page}
+    second_ids = {f["userid"] for f in second_page}
+    assert first_ids.isdisjoint(second_ids)
+    
+    # Test backid pagination (backward)
+    last_page = frienduser.select_friends(0, target, limit=2, backid=all_friends[-1]["userid"])
+    assert len(last_page) == 2
+    # backid should get friends before the specified user
+    back_usernames = [f["username"] for f in last_page]
+    assert all(un < all_friends[-1]["username"] for un in back_usernames)
+
+
+def test_has_friends_variations(db) -> None:
+    """Test has_friends with various states."""
+    user1 = db_utils.create_user()
+    user2 = db_utils.create_user()
+    
+    # Initially no friends
+    assert frienduser.has_friends(user1) is False
+    
+    # Pending request doesn't count as having friends
+    frienduser.request(user1, user2)
+    assert frienduser.has_friends(user1) is False
+    assert frienduser.has_friends(user2) is False
+    
+    # Accepted friendship counts
+    frienduser.request(user2, user1)  # Accept
+    assert frienduser.has_friends(user1) is True
+    assert frienduser.has_friends(user2) is True
+    
+    # After removing friendship
+    frienduser.remove(user1, user2)
+    assert frienduser.has_friends(user1) is False
+    assert frienduser.has_friends(user2) is False
+
