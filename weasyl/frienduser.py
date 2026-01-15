@@ -1,3 +1,12 @@
+"""
+Friend management module for Weasyl.
+
+This module handles friend requests, friendships, and friend list retrieval.
+
+Note: This module uses multiple database access patterns (d.engine.scalar(), d.engine.execute(),
+d.connect(), and transaction functions) which may appear inconsistent. This reflects the ongoing
+evolution of the database access layer. Future refactoring may standardize these patterns.
+"""
 import sqlalchemy as sa
 
 from weasyl import define as d
@@ -5,10 +14,6 @@ from weasyl import ignoreuser
 from weasyl import media
 from weasyl import welcome
 from weasyl.error import WeasylError
-
-# Note: This module uses multiple database access patterns (d.engine.scalar(), d.engine.execute(),
-# d.connect(), and transaction functions) which may appear inconsistent. This reflects the ongoing
-# evolution of the database access layer. Future refactoring may standardize these patterns.
 
 
 def check(userid: int, otherid: int) -> bool:
