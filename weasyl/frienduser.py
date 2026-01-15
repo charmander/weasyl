@@ -29,6 +29,9 @@ def check(userid: int, otherid: int) -> bool:
 
 
 def has_friends(otherid: int) -> bool:
+    """
+    Check whether a user has any confirmed friends.
+    """
     return d.engine.scalar(
         "SELECT EXISTS (SELECT FROM frienduser WHERE %(user)s IN (userid, otherid) AND settings !~ 'p')",
         user=otherid,
@@ -41,9 +44,19 @@ def select_friends(
     limit: int | None = None,
     backid: int = 0,
     nextid: int = 0,
-):
+) -> list[dict]:
     """
     Return accepted friends.
+
+    Parameters:
+        userid: The viewing user's ID, used to filter out ignored users.
+        otherid: The user whose friends list to retrieve.
+        limit: Maximum number of friends to return.
+        backid: For pagination - get friends with usernames before this user's username.
+        nextid: For pagination - get friends with usernames after this user's username.
+
+    Returns:
+        List of friend dictionaries with 'userid', 'username', and 'user_media' keys.
     """
     fr = d.meta.tables['frienduser']
     pr = d.meta.tables['profile']
@@ -51,11 +64,11 @@ def select_friends(
 
     friends = sa.union(
         (sa
-         .select([fr.c.otherid, pr.c.username, pr.c.config])
+         .select([fr.c.otherid, pr.c.username])
          .select_from(fr.join(pr, fr.c.otherid == pr.c.userid))
          .where(sa.and_(fr.c.userid == otherid, fr.c.settings.op('!~')('p')))),
         (sa
-         .select([fr.c.userid, pr.c.username, pr.c.config])
+         .select([fr.c.userid, pr.c.username])
          .select_from(fr.join(pr, fr.c.userid == pr.c.userid))
          .where(sa.and_(fr.c.otherid == otherid, fr.c.settings.op('!~')('p')))))
     friends = friends.alias('friends')
@@ -89,7 +102,16 @@ def select_friends(
     return ret
 
 
-def select_requests(userid: int):
+def select_requests(userid: int) -> list[dict]:
+    """
+    Return pending friend requests sent to a user.
+
+    Parameters:
+        userid: The user who received the friend requests.
+
+    Returns:
+        List of request dictionaries with 'userid', 'username', and 'user_media' keys.
+    """
     query = d.engine.execute(
         "SELECT fr.userid, pr.username FROM frienduser fr"
         " INNER JOIN profile pr ON fr.userid = pr.userid"
@@ -103,6 +125,15 @@ def select_requests(userid: int):
 
 
 def request(userid: int, otherid: int) -> None:
+    """
+    Send a friend request from userid to otherid, or accept an existing request.
+
+    If otherid has already sent a friend request to userid, this accepts the request.
+    Otherwise, this creates a new pending friend request.
+
+    Raises:
+        WeasylError: If either user is ignoring the other.
+    """
     if ignoreuser.check(otherid, userid):
         raise WeasylError("IgnoredYou")
     elif ignoreuser.check(userid, otherid):
@@ -141,6 +172,11 @@ def request(userid: int, otherid: int) -> None:
 
 
 def remove(userid: int, otherid: int) -> None:
+    """
+    Remove a friendship or reject a friend request between two users.
+
+    This works regardless of which user initiated the original request.
+    """
     def transaction(tx) -> None:
         row = tx.execute(
             "DELETE FROM frienduser"
